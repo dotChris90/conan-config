@@ -10,6 +10,7 @@ from os import mkdir, system, devnull
 from glob import glob
 from subprocess import check_call, STDOUT, Popen, PIPE
 from pathlib import Path
+from time import sleep
 from json import dumps as json_dumps
 
 recipe_color = Color.BRIGHT_BLUE
@@ -22,7 +23,7 @@ def cmaketargets(conan_api: ConanAPI, parser, *args):
     list cmake targets of packages
     """
 
-    parser.add_argument('-r', '--requires', action='append',
+    parser.add_argument('--requires', action='append',
                         help='package to determine targets')
     parser.add_argument('--json',action=OnceArgument,
                         help="json output file")
@@ -31,8 +32,24 @@ def cmaketargets(conan_api: ConanAPI, parser, *args):
 
     conan_out = ConanOutput()
     conan_in = UserInput(non_interactive=False)
-    
-    #out.writeln("Generating targets of package {}".format(args["requires"]))
+
+    pkg_not_in_cache = False
+
+    for idx in args.requires:
+        cmd = ["conan","list",idx]
+        proc = Popen(cmd, stderr=PIPE, stdout=PIPE)
+
+        out = proc.stdout.readlines()
+
+        if ("  ERROR: Recipe " in str(out[1])):
+            pkg_not_in_cache = True
+            conan_out.warning("package {} not present in cache - determination takes time .... ".format(idx))
+        else:
+            conan_out.writeln("package {} present in cache".format(idx))
+        sleep(1)
+        
+
+    conan_out.writeln("\n")
 
     with TemporaryDirectory() as tmpDir:
         
