@@ -23,6 +23,10 @@ def generate(conan_api: ConanAPI, parser, *args):
     generate different files
     """
 
+    parser.add_argument('--vscode-settings', default=False, action='store_true',
+                        help='Generate settings file for vscode')
+    parser.add_argument('--vscode-launch', default=False, action='store_true',
+                        help='Generate launch file for vscode')
     parser.add_argument('--doxy', default=False, action='store_true',
                         help='Generate doxygen file')
     parser.add_argument('--clang', default=False, action='store_true',
@@ -54,6 +58,13 @@ def generate(conan_api: ConanAPI, parser, *args):
             "Doxyfile"
         )
     
+    vscode_settings_path = pathJoin(
+            Path(__file__).parent,
+            "templates",
+            ".vscode",
+            "settings.json"
+        )
+
     dst = Path(args.dst).absolute()
     
     if args.all:
@@ -83,4 +94,19 @@ def generate(conan_api: ConanAPI, parser, *args):
             file_dst = pathJoin(dst,"Doxyfile")
             copyfile(doxyfile_path,file_dst)
             conan_out.writeln("Doxyfile at {}".format(file_dst))
+        if args.vscode_settings:
+            dst = pathJoin(dst,".vscode")
+            if not Path(dst).exists():
+                mkdir(dst)                
+            file_dst = pathJoin(dst,"settings.json")
+            copyfile(vscode_settings_path,file_dst)
+            conan_out.writeln("Doxyfile at {}".format(file_dst))
+
+            # conan install . --deploy=include
+            cmd = [
+                "conan",
+                "install",
+                
+            ]
+
 

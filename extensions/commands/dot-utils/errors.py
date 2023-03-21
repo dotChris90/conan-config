@@ -1,0 +1,2 @@
+class InvalidPackageFormat(Exception):
+    pass
